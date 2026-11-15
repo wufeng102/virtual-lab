@@ -144,14 +144,16 @@
       const st = await VL.api.call('skills_state');
       box.innerHTML = '';
       if (!st.ok) { box.append(h('div', { class: 'card err' }, st.error)); return; }
-      if (!st.certs.length) { box.append(h('div', { class: 'card' }, 'Belum ada sertifikat. Selesaikan semua misi pada satu skill untuk memperolehnya.', h('p', null, h('a', { class: 'btn primary', href: '#/' }, 'Mulai Jalur Skill')))); return; }
-      st.certs.forEach(c => box.append(h('a', { class: 'card certrow', href: '#/sertifikat/' + c.id }, h('b', null, '🎓 ' + c.judul_en), h('div', { class: 'muted small' }, c.id + ' · skor ' + c.skor + ' · ' + new Date(c.tanggal).toLocaleDateString('id-ID')), c.status !== 'valid' ? h('span', { class: 'pill st-blocked' }, 'dicabut') : null)));
+      if (!st.certs.length) { box.append(h('div', { class: 'card' }, 'Belum ada sertifikat. Selesaikan semua misi pada satu skill; sertifikat terbit setelah disetujui dosen.', h('p', null, h('a', { class: 'btn primary', href: '#/' }, 'Mulai Jalur Skill')))); return; }
+      st.certs.forEach(c => box.append(h('a', { class: 'card certrow', href: '#/sertifikat/' + c.id }, h('b', null, '🎓 ' + c.judul_en), h('div', { class: 'muted small' }, c.id + ' · skor ' + c.skor + ' · ' + new Date(c.tanggal).toLocaleDateString('id-ID')), c.status !== 'valid' ? h('span', { class: 'pill st-' + (c.status === 'menunggu' ? 'pending' : 'blocked') }, { menunggu: 'menunggu persetujuan dosen', ditolak: 'belum disetujui', dicabut: 'dicabut' }[c.status] || c.status) : null)));
       return;
     }
     view.append(h('p', null, h('a', { href: '#/sertifikat' }, '← Semua sertifikat')));
     const st = await VL.api.call('skills_state');
     const cert = st.ok && st.certs.find(c => c.id === id);
     if (!cert) { view.append(h('div', { class: 'card err' }, 'Sertifikat tidak ditemukan.')); return; }
+    if (cert.status === 'menunggu') { view.append(h('div', { class: 'card note' }, h('h3', null, '⏳ Menunggu persetujuan dosen'), h('p', null, 'Sertifikat "' + cert.judul_en + '" (skor ' + cert.skor + ') sedang diperiksa dosen. Anda akan menerima email begitu disetujui, dan sertifikat dapat diunduh di halaman ini.'))); return; }
+    if (cert.status === 'ditolak') { view.append(h('div', { class: 'card err' }, h('h3', null, 'Belum disetujui'), h('p', null, cert.catatan || 'Hubungi dosen untuk keterangan lebih lanjut.'))); return; }
     if (cert.status !== 'valid') view.append(h('div', { class: 'card err' }, 'Sertifikat ini telah dicabut oleh penerbit.'));
     const holder = h('div', { class: 'certbox' }, h('div', { class: 'muted' }, 'Menyiapkan sertifikat…')); view.append(holder);
     let cv; try { cv = await C.render(C.dataFor(cert, u)); } catch (e) { holder.innerHTML = ''; holder.append(h('div', { class: 'card err' }, 'Gagal membuat gambar sertifikat: ' + e.message)); return; }

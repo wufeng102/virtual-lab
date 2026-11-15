@@ -14,7 +14,6 @@
     const n = VL.runs().length;
     const srv = VL.api.enabled();
     const items = srv ? [['', 'Jalur Skill'], ['lab', 'Lab Bebas'], ['sertifikat', 'Sertifikat'], ['jurnal', 'Jurnal'], ['profil', 'Profil'], ['tentang', 'Tentang']] : [['', 'Beranda'], ['jurnal', 'Jurnal'], ['profil', 'Profil'], ['tentang', 'Tentang']];
-    if (VL.api.isAdmin()) items.splice(items.length - 1, 0, ['admin', 'Admin']);
     items.forEach(([k, l]) => {
       const a = h('a', { href: '#/' + k, class: (active || '') === k || ((k === '' && srv ? ['skill', 'misi'] : k === '' ? ['m'] : k === 'lab' ? ['m'] : []).indexOf(active) >= 0) ? 'on' : '' }, l);
       if (k === 'jurnal' && n) a.append(h('span', { class: 'badge' }, n));
@@ -169,7 +168,7 @@
       else if (a === 'sertifikat') return done(VL.certList(view, b));
       else if (a === 'verify') return done(VL.verifyView(view, b));
       else if (a === 'm') moduleView(b); else if (a === 'jurnal') journal();
-      else if (a === 'profil') profile(); else if (a === 'admin' && VL.api.isAdmin()) VL.adminView(view); else if (a === 'tentang') about(); else home();
+      else if (a === 'profil') profile(); else if (a === 'tentang') about(); else home();
     } catch (e) { view.append(h('div', { class: 'card err' }, 'Terjadi kesalahan: ' + e.message)); console.error(e); }
     finish();
   }

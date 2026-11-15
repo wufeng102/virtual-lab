@@ -17,7 +17,7 @@
   };
 
   function loginUI(p) {
-    const nim = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'off', placeholder: 'NIM' });
+    const nim = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'off', placeholder: 'NIM (huruf besar/kecil sama saja)' });
     const pw = h('input', { type: 'password', autocomplete: 'current-password' });
     const msg = h('div'); const btn = h('button', { class: 'btn primary' }, 'Masuk');
     async function go() {
@@ -42,7 +42,7 @@
     btn.addEventListener('click', async () => {
       msg.innerHTML = '';
       const fail = t => msg.append(h('div', { class: 'card err' }, t));
-      if (!f.nama.value.trim() || !f.nim.value.trim() || !f.kelas.value.trim() || !mk.value) return fail('Lengkapi nama, NIM, kelas, dan mata kuliah.');
+      if (!f.nama.value.trim() || !f.nim.value.trim() || !f.kelas.value.trim() || !mk.value || !f.email.value.trim()) return fail('Lengkapi nama, NIM, kelas, mata kuliah, dan email.');
       if (f.pw.value !== f.pw2.value) return fail('Konfirmasi sandi tidak sama.');
       if (f.pw.value.length < 8) return fail('Sandi minimal 8 karakter.');
       if (!ok.checked) return fail('Centang persetujuan terlebih dahulu.');
@@ -51,10 +51,10 @@
       btn.disabled = false; btn.textContent = 'Kirim pendaftaran';
       if (!r.ok) return fail(r.error || 'Pendaftaran gagal.');
       p.innerHTML = '';
-      p.append(h('div', { class: 'card note' }, h('h3', null, 'Pendaftaran terkirim'), h('p', null, 'Dosen akan memeriksa data Anda. Setelah disetujui, masuklah dengan NIM dan sandi yang baru Anda buat. Kami tidak mengirim email otomatis — tanyakan ke dosen bila perlu.')));
+      p.append(h('div', { class: 'card note' }, h('h3', null, 'Pendaftaran terkirim'), h('p', null, 'Dosen akan memeriksa data Anda. Setelah disetujui, masuklah dengan NIM dan sandi yang baru Anda buat. Persetujuan dilakukan dosen secara manual; tanyakan ke dosen bila belum disetujui.')));
     });
     p.append(h('div', { class: 'card' },
-      h('div', { class: 'cols' }, VL.field('Nama lengkap', f.nama), VL.field('NIM', f.nim, '5–20 huruf/angka'), VL.field('Kelas', f.kelas), VL.field('Mata kuliah', mk), VL.field('Email (opsional)', f.email)),
+      h('div', { class: 'cols' }, VL.field('Nama lengkap', f.nama), VL.field('NIM', f.nim, '5–20 huruf/angka'), VL.field('Kelas', f.kelas), VL.field('Mata kuliah', mk), VL.field('Email', f.email, 'Wajib. Sertifikat dan pemberitahuan dikirim ke sini.')),
       h('div', { class: 'cols' }, VL.field('Sandi', f.pw, 'Minimal 8 karakter. Jangan pakai sandi yang sama dengan akun lain.'), VL.field('Ulangi sandi', f.pw2)),
       h('label', { class: 'fld', style: 'display:flex;gap:.4rem;align-items:flex-start' }, ok, 'Saya memahami bahwa jurnal yang saya simpan (hipotesis, hasil, refleksi) dikirim ke dosen untuk keperluan pembelajaran dan penilaian.'),
       btn, msg));

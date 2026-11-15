@@ -42,14 +42,14 @@
     box.innerHTML = '';
     if (!st.ok) { box.append(h('div', { class: 'card err' }, st.error || 'Gagal memuat.')); return; }
     const done = st.skills.filter(s => s.status === 'done').length;
-    box.append(h('div', { class: 'kpis' }, VL.kpi('Skill selesai', done + '/' + SK.length, done ? 'good' : ''), VL.kpi('Sertifikat', st.certs.filter(c => c.status === 'valid').length), VL.kpi('Misi lulus', st.skills.reduce((a, s) => a + s.missions.filter(m => m.status === 'done').length, 0) + '/' + SK.reduce((a, s) => a + s.missions.length, 0))));
+    box.append(h('div', { class: 'kpis' }, VL.kpi('Skill selesai', done + '/' + SK.length, done ? 'good' : ''), VL.kpi('Sertifikat', st.certs.filter(c => c.status === 'valid').length + (st.certs.some(c => c.status === 'menunggu') ? ' (+' + st.certs.filter(c => c.status === 'menunggu').length + ' menunggu)' : '')), VL.kpi('Misi lulus', st.skills.reduce((a, s) => a + s.missions.filter(m => m.status === 'done').length, 0) + '/' + SK.reduce((a, s) => a + s.missions.length, 0))));
     const grid = h('div', { class: 'path' });
     SK.forEach((s, i) => {
       const t = st.skills[i], locked = t.status === 'locked';
       const dots = h('span', { class: 'dots' }, t.missions.map(m => h('i', { class: 'dot ' + m.status }, m.status === 'done' ? '✓' : '')));
       const prev = SK[i - 1];
       grid.append(h('a', { class: 'skill ' + t.status, href: locked ? 'javascript:void(0)' : '#/skill/' + s.id, onclick: locked ? () => VL.toast('Selesaikan "' + prev.title + '" lebih dulu') : null },
-        h('span', { class: 'no' }, locked ? '🔒' : (t.status === 'done' ? '🎓' : s.icon)),
+        h('span', { class: 'no' }, locked ? '🔒' : (t.cert_status === 'menunggu' ? '⏳' : t.cert_status === 'ditolak' ? '⚠️' : t.status === 'done' ? '🎓' : s.icon)),
         h('div', { class: 'body' }, h('b', null, (i + 1) + '. ' + s.title), h('span', { class: 'muted small' }, s.summary), dots,
           h('div', { class: 'tags' }, s.skkni.slice(0, 2).map(k => h('span', { class: 'tag' }, k.code))))));
     });
@@ -73,7 +73,9 @@
         h('div', { class: 'row', style: 'margin:0;justify-content:space-between' }, h('b', null, (i + 1) + '. ' + m.title), h('span', { class: 'pill st-' + (tm.status === 'done' ? 'approved' : tm.status === 'open' ? 'pending' : 'rejected') }, tm.status === 'done' ? 'lulus ' + tm.best : tm.status === 'open' ? 'terbuka' : 'terkunci')),
         h('div', { class: 'muted small' }, KIND[m.kind] + ' · ± ' + m.est + (tm.tries ? ' · ' + tm.tries + ' percobaan' : ''))));
     });
-    if (t.cert) box.append(h('div', { class: 'card verified' }, h('h3', null, '🎓 Skill selesai'), h('p', null, 'Sertifikat Anda sudah terbit.'), h('a', { class: 'btn primary', href: '#/sertifikat/' + t.cert }, 'Buka sertifikat')));
+    if (t.cert) box.append(h('div', { class: 'card verified' }, h('h3', null, '🎓 Skill selesai'), h('p', null, 'Sertifikat Anda sudah disetujui dan terbit.'), h('a', { class: 'btn primary', href: '#/sertifikat/' + t.cert }, 'Buka sertifikat')));
+    else if (t.cert_status === 'menunggu') box.append(h('div', { class: 'card note' }, h('h3', null, '⏳ Menunggu persetujuan dosen'), h('p', null, 'Semua misi pada skill ini sudah lulus. Sertifikat terbit setelah dosen memeriksa hasil Anda. Anda tetap dapat melanjutkan ke skill berikutnya.')));
+    else if (t.cert_status === 'ditolak') box.append(h('div', { class: 'card err' }, h('h3', null, 'Sertifikat belum disetujui'), h('p', null, t.cert_note || 'Hubungi dosen untuk keterangan lebih lanjut.')));
   };
 
   /* ---------- Render materi ---------- */
@@ -203,7 +205,8 @@
     } else if (r.results) {
       out.append(h('div', { class: 'card' }, r.results.map((x, i) => h('div', { class: 'crit' }, h('b', null, 'Soal ' + (i + 1) + ': ' + (x.ok ? '✓ benar' : '✗ belum tepat')), h('div', { class: 'small ' + (x.ok ? 'ok' : 'bad') }, x.ok ? x.why : 'Petunjuk: ' + x.hint)))));
     }
-    if (r.cert) out.append(h('div', { class: 'card verified' }, h('h2', null, '🎓 Selamat! Skill selesai'), h('p', null, 'Sertifikat "' + r.cert.judul_en + '" telah terbit dengan skor akhir ' + r.cert.skor + '.'), h('a', { class: 'btn primary', href: '#/sertifikat/' + r.cert.id }, 'Lihat & unduh sertifikat')));
+    if (r.cert && r.cert.status === 'valid') out.append(h('div', { class: 'card verified' }, h('h2', null, '🎓 Selamat! Skill selesai'), h('p', null, 'Sertifikat "' + r.cert.judul_en + '" sudah disetujui dengan skor akhir ' + r.cert.skor + '.'), h('a', { class: 'btn primary', href: '#/sertifikat/' + r.cert.id }, 'Lihat & unduh sertifikat')));
+    else if (r.cert && r.cert.status === 'menunggu') out.append(h('div', { class: 'card verified' }, h('h2', null, '🎉 Skill selesai'), h('p', null, 'Semua misi lulus dengan skor akhir ' + r.cert.skor + '. Sertifikat "' + r.cert.judul_en + '" kini menunggu persetujuan dosen; Anda akan menerimanya setelah disetujui.'), h('a', { class: 'btn', href: '#/' }, 'Kembali ke Jalur Skill')));
     else if (r.passed && nextM) out.append(h('a', { class: 'btn primary', href: '#/misi/' + s.id + '/' + nextM.id }, 'Lanjut ke misi berikutnya →'));
     body.append(out); out.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
