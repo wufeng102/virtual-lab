@@ -1,0 +1,37 @@
+{
+  "name": "Azhar Virtual Marketing Lab",
+  "short_name": "Azhar Lab",
+  "description": "Jalur skill pemasaran berstandar SKKNI dengan simulasi, penilaian AI, dan e-sertifikat.",
+  "start_url": "./index.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#000171",
+  "theme_color": "#000171",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "./",
+  "categories": [
+    "education",
+    "business"
+  ]
+}
