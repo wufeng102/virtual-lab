@@ -7,17 +7,25 @@
   VL.auth = {
     show(container, message) {
       container.innerHTML = '';
-      container.append(h('section', { class: 'card hero' },
-        h('h1', null, 'Virtual Lab Marketing'),
-        h('p', { class: 'muted' }, 'Ruang riset dan pelatihan marketing. Akses hanya untuk mahasiswa yang telah disetujui dosen pengampu.')));
-      if (message) container.append(h('div', { class: 'card note' }, message));
-      const host = h('div'); container.append(host);
+      document.body.classList.add('gated');
+      const host = h('div');
+      const form = h('div', null, h('h2', null, 'Selamat datang'), h('p', { class: 'lede' }, 'Masuk dengan NIM Anda, atau daftar bila belum punya akun. Akun aktif setelah disetujui dosen pengampu.'));
+      if (message) form.append(h('div', { class: 'card note' }, message));
+      form.append(host);
+      container.append(VL.gate({
+        brand: 'Azhar Virtual Marketing Lab',
+        title: 'Berlatih memasarkan seperti di tempat kerja.',
+        text: 'Analisis penjualan, rapat strategi, sampai menangani keluhan pelanggan, dengan kasus yang dibuat ulang setiap sesi dan dinilai memakai rubrik kompetensi.',
+        facts: [['13 skill', 'Dari analisis pasar sampai rencana pemasaran terpadu, disusun berurutan.'], ['Sesi terjaga', 'Keluar dari aplikasi di tengah sesi membatalkan sesi dan mengganti kasusnya.'], ['Sertifikat', 'Terbit setelah disetujui dosen, dengan QR untuk verifikasi keasliannya.']],
+        form: form,
+        foot: 'Lab ini bukan bagian dari lembaga sertifikasi profesi. Sertifikatnya menyatakan penyelesaian latihan, bukan sertifikasi kompetensi BNSP.'
+      }));
       VL.tabs(host, [{ label: 'Masuk', render: loginUI }, { label: 'Daftar', render: registerUI }]);
     }
   };
 
   function loginUI(p) {
-    const nim = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'off', placeholder: 'NIM (huruf besar/kecil sama saja)' });
+    const nim = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'off', placeholder: 'Contoh: 2021010123' });
     const pw = h('input', { type: 'password', autocomplete: 'current-password' });
     const msg = h('div'); const btn = h('button', { class: 'btn primary' }, 'Masuk');
     async function go() {

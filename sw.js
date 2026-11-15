@@ -1,9 +1,9 @@
 // Service worker: aplikasi tetap bisa dibuka tanpa internet setelah kunjungan pertama.
-const CACHE = 'vlmkt-v1.5.0';
+const CACHE = 'vlmkt-v1.5.1';
 const ASSETS = [
   './', './index.html', './config.js', './manifest.webmanifest',
   './css/style.css',
-  './js/core.js', './js/mod-ads.js', './js/mod-market.js', './js/mod-analytics.js',
+  './js/core.js', './js/ui.js', './js/mod-ads.js', './js/mod-market.js', './js/mod-analytics.js',
   './js/mod-research.js', './js/mod-strategy.js', './js/mod-funnel.js', './js/skills-data.js', './js/vendor/qrcode.js', './js/skills.js', './js/cert.js', './assets/logo.png', './assets/signature.png', './icons/apple-touch-icon.png', './js/mod-ai.js', './js/api.js', './js/auth.js', './js/app.js',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png'
 ];

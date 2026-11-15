@@ -27,8 +27,7 @@
 
   /* ---------- Masuk ---------- */
   function showLogin(msg) {
-    view.innerHTML = '';
-    if (!cfg.apiUrl) { view.append(h('div', { class: 'card err' }, 'apiUrl belum diisi di config.js.')); return; }
+    view.innerHTML = ''; document.body.classList.add('gated');
     const nim = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: 'Nama pengguna dosen' });
     const pw = h('input', { type: 'password', autocomplete: 'current-password' });
     const out = h('div'), btn = h('button', { class: 'btn primary' }, 'Masuk');
@@ -40,15 +39,17 @@
       token = r.token; user = r.user; ls.set(TK, token); ls.set(UK, JSON.stringify(user)); start();
     }
     btn.addEventListener('click', go); pw.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-    view.append(h('section', { class: 'card hero' }, h('h1', null, 'Ruang Komando'), h('p', { class: 'muted' }, 'Halaman khusus dosen: pantau seluruh mahasiswa, setujui pendaftaran, dan putuskan penerbitan sertifikat.')),
-      msg ? h('div', { class: 'card note' }, msg) : null,
-      h('div', { class: 'card' }, VL.field('Nama pengguna', nim), VL.field('Sandi', pw), btn, out,
-        h('p', { class: 'muted small' }, 'Mahasiswa tidak memakai halaman ini. Mahasiswa masuk lewat halaman aplikasi biasa.')));
+    const form = h('div', null, h('h2', null, 'Masuk sebagai dosen'), h('p', { class: 'lede' }, 'Halaman ini khusus pengampu. Mahasiswa masuk lewat halaman aplikasi.'));
+    if (!cfg.apiUrl) form.append(h('div', { class: 'card err' }, 'apiUrl belum diisi di config.js.'));
+    if (msg) form.append(h('div', { class: 'card note' }, msg));
+    form.append(h('div', { class: 'card' }, VL.field('Nama pengguna', nim), VL.field('Sandi', pw), btn, out));
+    view.append(VL.gate({ variant: 'dosen', brand: 'Azhar Virtual Marketing Lab', title: 'Ruang Komando.', text: 'Pantau progres setiap mahasiswa, setujui pendaftaran, dan putuskan penerbitan sertifikat berdasarkan laporan nilai dan aktivitas.',
+      facts: [['Pendaftar', 'Setujui atau tolak pendaftaran langsung dari satu antrean.'], ['Laporan', 'Skor, kriteria yang lemah, durasi pengerjaan, dan sesi yang dibatalkan.'], ['Sertifikat', 'Tidak terbit otomatis. Anda yang memutuskan.']], form: form }));
   }
 
   /* ---------- Muat & tampilkan ---------- */
   async function start() {
-    view.innerHTML = ''; view.append(h('div', { class: 'card' }, 'Memuat data…'));
+    document.body.classList.remove('gated'); view.innerHTML = ''; view.append(h('div', { class: 'card' }, 'Memuat data…'));
     const r = await call('admin_overview');
     if (!r.ok) { if (r.code === 'auth') return; view.innerHTML = ''; view.append(h('div', { class: 'card err' }, r.error || 'Gagal memuat.'), h('button', { class: 'btn', onclick: () => logout(false) }, 'Keluar')); return; }
     D = r;
@@ -63,7 +64,8 @@
   function main() {
     view.innerHTML = '';
     const dayAgo = Date.now() - 864e5, act = students().filter(x => x.status === 'approved');
-    view.append(h('h1', null, 'Ruang Komando'),
+    const hari = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    view.append(VL.band('Ruang Komando', 'Selamat datang' + (user && user.nama ? ', ' + user.nama : '') + '. ' + hari + '.'),
       h('div', { class: 'kpis' },
         VL.kpi('Pendaftar menunggu', cnt('pending'), cnt('pending') ? 'bad' : ''), VL.kpi('Mahasiswa aktif', act.length, 'good'),
         VL.kpi('Sertifikat menunggu', D.antrean.length, D.antrean.length ? 'bad' : ''), VL.kpi('Aktif 24 jam', act.filter(x => x.aktif_terakhir && new Date(x.aktif_terakhir).getTime() > dayAgo).length),
@@ -110,7 +112,7 @@
     p.append(h('div', { class: 'card' }, h('h3', null, 'Perlu perhatian'), att.length ? VL.table(['Nama', 'NIM', 'Catatan', ''], att) : h('p', { class: 'muted' }, 'Belum ada mahasiswa yang menonjol sebagai tidak aktif atau sering membatalkan sesi.'),
       h('p', { class: 'muted small' }, 'Tidak aktif = lebih dari 7 hari tanpa aktivitas dan belum menyelesaikan semua misi. Sesi batal ≥ 3 = berulang kali meninggalkan aplikasi saat sesi.')));
     p.append(h('div', { class: 'card' }, h('h3', null, 'Aktivitas terbaru'), D.feed.length ? VL.table(['Waktu', 'Mahasiswa', 'Aktivitas'], D.feed.map(f => [ago(f.waktu), f.nama || f.nim, evText(f)])) : h('p', { class: 'muted' }, 'Belum ada aktivitas.'),
-      h('button', { class: 'btn small', onclick: reload }, '↻ Muat ulang')));
+      h('button', { class: 'btn small', onclick: reload }, 'Muat ulang')));
   }
 
   /* ---------- Pendaftar ---------- */

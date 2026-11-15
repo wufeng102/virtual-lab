@@ -5,7 +5,7 @@
   const SK = window.VL_SKILLS || [];
   const S = VL.skills = { state: null };
   const skillDef = id => SK.find(s => s.id === id);
-  const KIND = { quiz: '📝 Kuis', task: '🧩 Studi kasus', roleplay: '🎭 Role-play AI', meeting: '👥 Simulasi rapat AI' };
+  const KIND = { quiz: 'Kuis', task: 'Studi kasus', roleplay: 'Role-play AI', meeting: 'Simulasi rapat AI' };
   let cache = null;
 
   S.load = async function (force) {
@@ -35,8 +35,7 @@
   /* ---------- Peta skill (beranda) ---------- */
   S.home = async function (view) {
     const u = VL.api.user();
-    view.append(h('section', { class: 'card hero' }, h('h1', null, 'Jalur Skill Pemasaran'),
-      h('p', { class: 'muted' }, 'Sepuluh skill yang dicari di dunia kerja, dari pemasaran konvensional sampai digital, sebagian disusun mengikuti Unit Kompetensi SKKNI Pemasaran. Selesaikan satu skill (kuis → studi kasus → praktik) untuk membuka berikutnya dan memperoleh e-sertifikat.')));
+    view.append(VL.band('Jalur Skill Pemasaran', (u && u.nama ? 'Halo, ' + u.nama.split(' ')[0] + '. ' : '') + 'Tiga belas skill yang dicari di dunia kerja, dari pemasaran konvensional sampai digital. Selesaikan satu skill untuk membuka berikutnya; sertifikat terbit setelah disetujui dosen.'));
     const box = h('div', null, h('div', { class: 'card' }, 'Memuat jalur skill…')); view.append(box);
     const st = await S.load(true);
     box.innerHTML = '';
@@ -48,8 +47,8 @@
       const t = st.skills[i], locked = t.status === 'locked';
       const dots = h('span', { class: 'dots' }, t.missions.map(m => h('i', { class: 'dot ' + m.status }, m.status === 'done' ? '✓' : '')));
       const prev = SK[i - 1];
-      grid.append(h('a', { class: 'skill ' + t.status, href: locked ? 'javascript:void(0)' : '#/skill/' + s.id, onclick: locked ? () => VL.toast('Selesaikan "' + prev.title + '" lebih dulu') : null },
-        h('span', { class: 'no' }, locked ? '🔒' : (t.cert_status === 'menunggu' ? '⏳' : t.cert_status === 'ditolak' ? '⚠️' : t.status === 'done' ? '🎓' : s.icon)),
+      grid.append(h('a', { class: 'skill ' + t.status + (t.cert_status === 'menunggu' ? ' wait' : ''), href: locked ? 'javascript:void(0)' : '#/skill/' + s.id, onclick: locked ? () => VL.toast('Selesaikan "' + prev.title + '" lebih dulu') : null },
+        h('span', { class: 'no' }, t.status === 'done' && t.cert_status !== 'menunggu' ? '✓' : String(i + 1)),
         h('div', { class: 'body' }, h('b', null, (i + 1) + '. ' + s.title), h('span', { class: 'muted small' }, s.summary), dots,
           h('div', { class: 'tags' }, s.skkni.slice(0, 2).map(k => h('span', { class: 'tag' }, k.code))))));
     });
@@ -60,11 +59,11 @@
   /* ---------- Detail satu skill ---------- */
   S.skill = async function (view, id) {
     const s = skillDef(id); if (!s) { view.append(h('div', { class: 'card err' }, 'Skill tidak ditemukan.')); return; }
-    view.append(h('p', null, h('a', { href: '#/' }, '← Jalur Skill')), h('h1', null, s.icon + ' ' + s.title), h('p', { class: 'muted' }, s.summary));
+    view.append(h('p', null, h('a', { href: '#/' }, '← Jalur Skill')), h('h1', null, s.title), h('p', { class: 'muted' }, s.summary));
     const box = h('div'); view.append(box);
     const st = await S.load(true); if (!st.ok) { box.append(h('div', { class: 'card err' }, st.error)); return; }
     const t = st.skills[SK.indexOf(s)];
-    if (t.status === 'locked') { box.append(h('div', { class: 'card note' }, '🔒 Skill ini terkunci. Selesaikan skill sebelumnya dan peroleh sertifikatnya.')); return; }
+    if (t.status === 'locked') { box.append(h('div', { class: 'card note' }, 'Skill ini terkunci. Selesaikan skill sebelumnya dan peroleh sertifikatnya.')); return; }
     box.append(h('div', { class: 'card' }, h('h3', null, 'Mengapa penting di dunia kerja'), h('p', null, s.workplace),
       h('h3', null, 'Unit Kompetensi SKKNI terkait'), (s.skkni.length ? h('ul', null, s.skkni.map(k => h('li', null, h('code', null, k.code), ' ' + k.title))) : h('p', { class: 'muted small' }, 'Skill kekinian yang belum ada unit setaranya di SKKNI Pemasaran 2013. Dinilai memakai rubrik Lab.'))));
     s.missions.forEach((m, i) => {
@@ -73,8 +72,8 @@
         h('div', { class: 'row', style: 'margin:0;justify-content:space-between' }, h('b', null, (i + 1) + '. ' + m.title), h('span', { class: 'pill st-' + (tm.status === 'done' ? 'approved' : tm.status === 'open' ? 'pending' : 'rejected') }, tm.status === 'done' ? 'lulus ' + tm.best : tm.status === 'open' ? 'terbuka' : 'terkunci')),
         h('div', { class: 'muted small' }, KIND[m.kind] + ' · ± ' + m.est + (tm.tries ? ' · ' + tm.tries + ' percobaan' : ''))));
     });
-    if (t.cert) box.append(h('div', { class: 'card verified' }, h('h3', null, '🎓 Skill selesai'), h('p', null, 'Sertifikat Anda sudah disetujui dan terbit.'), h('a', { class: 'btn primary', href: '#/sertifikat/' + t.cert }, 'Buka sertifikat')));
-    else if (t.cert_status === 'menunggu') box.append(h('div', { class: 'card note' }, h('h3', null, '⏳ Menunggu persetujuan dosen'), h('p', null, 'Semua misi pada skill ini sudah lulus. Sertifikat terbit setelah dosen memeriksa hasil Anda. Anda tetap dapat melanjutkan ke skill berikutnya.')));
+    if (t.cert) box.append(h('div', { class: 'card verified' }, h('h3', null, 'Skill selesai'), h('p', null, 'Sertifikat Anda sudah disetujui dan terbit.'), h('a', { class: 'btn primary', href: '#/sertifikat/' + t.cert }, 'Buka sertifikat')));
+    else if (t.cert_status === 'menunggu') box.append(h('div', { class: 'card note' }, h('h3', null, 'Menunggu persetujuan dosen'), h('p', null, 'Semua misi pada skill ini sudah lulus. Sertifikat terbit setelah dosen memeriksa hasil Anda. Anda tetap dapat melanjutkan ke skill berikutnya.')));
     else if (t.cert_status === 'ditolak') box.append(h('div', { class: 'card err' }, h('h3', null, 'Sertifikat belum disetujui'), h('p', null, t.cert_note || 'Hubungi dosen untuk keterangan lebih lanjut.')));
   };
 
@@ -151,7 +150,7 @@
     const st = await S.load(true); if (!st.ok) { view.append(h('div', { class: 'card err' }, st.error)); return; }
     const t = st.skills[SK.indexOf(s)], tm = t.missions[s.missions.indexOf(m)];
     view.append(h('p', null, h('a', { href: '#/skill/' + sid }, '← ' + s.title)), h('h1', null, m.title), h('p', { class: 'muted' }, KIND[m.kind] + ' · ± ' + m.est), h('p', null, m.brief));
-    if (tm.status === 'locked') { view.append(h('div', { class: 'card note' }, '🔒 Misi ini belum terbuka.')); return; }
+    if (tm.status === 'locked') { view.append(h('div', { class: 'card note' }, 'Misi ini belum terbuka.')); return; }
     if (tm.status === 'done') view.append(h('div', { class: 'card verified small' }, 'Misi ini sudah lulus (skor terbaik ' + tm.best + '). Anda boleh mengulang untuk latihan; skor terbaik tetap tercatat.'));
     const body = h('div', { class: 'secure' }); view.append(body);
     const lim = { quiz: 3, task: 6, roleplay: 4, meeting: 4 }[m.kind];
@@ -159,7 +158,7 @@
       body.innerHTML = '';
       if (msg) body.append(h('div', { class: 'card err' }, msg));
       const go = h('button', { class: 'btn primary' }, '▶ Mulai sesi');
-      body.append(h('div', { class: 'card' }, h('h3', null, '🔒 Sesi terjaga'),
+      body.append(h('div', { class: 'card' }, h('h3', null, 'Sesi terjaga'),
         h('ul', { class: 'small' },
           h('li', null, 'Kasus/soal baru ditampilkan hanya setelah Anda menekan tombol mulai' + (m.gen ? '; data kasus dibuat baru setiap sesi.' : '.')),
           h('li', null, h('b', null, 'Jangan pindah aplikasi, tab, atau jendela.'), ' Bila Anda keluar, sesi langsung batal dan Anda harus mengulang dari awal dengan kasus/data yang berbeda.'),
@@ -182,7 +181,7 @@
         body.innerHTML = '';
         body.append(h('div', { class: 'card err' }, h('h3', null, '⛔ Sesi dibatalkan'), h('p', null, WHY[why] || 'Sesi berakhir.'), h('p', null, 'Untuk menjaga keadilan, Anda harus mengulang dari awal. Kasus dan data akan berbeda.'), h('button', { class: 'btn primary', onclick: () => pre() }, 'Mulai ulang sesi')));
       });
-      body.append(h('div', { class: 'card note small' }, '🔒 Sesi berlangsung. Tetap di halaman ini sampai selesai.'));
+      body.append(h('div', { class: 'card note small' }, 'Sesi berlangsung. Tetap di halaman ini sampai selesai.'));
       const ctx = { s: s, m: m, tm: tm, sess: sess, g: g, retry: msg => { g.stop(); pre(msg); } };
       if (m.kind === 'quiz') quizView(body, ctx); else if (m.kind === 'task') taskView(body, ctx); else chatView(body, ctx);
     }
@@ -205,8 +204,8 @@
     } else if (r.results) {
       out.append(h('div', { class: 'card' }, r.results.map((x, i) => h('div', { class: 'crit' }, h('b', null, 'Soal ' + (i + 1) + ': ' + (x.ok ? '✓ benar' : '✗ belum tepat')), h('div', { class: 'small ' + (x.ok ? 'ok' : 'bad') }, x.ok ? x.why : 'Petunjuk: ' + x.hint)))));
     }
-    if (r.cert && r.cert.status === 'valid') out.append(h('div', { class: 'card verified' }, h('h2', null, '🎓 Selamat! Skill selesai'), h('p', null, 'Sertifikat "' + r.cert.judul_en + '" sudah disetujui dengan skor akhir ' + r.cert.skor + '.'), h('a', { class: 'btn primary', href: '#/sertifikat/' + r.cert.id }, 'Lihat & unduh sertifikat')));
-    else if (r.cert && r.cert.status === 'menunggu') out.append(h('div', { class: 'card verified' }, h('h2', null, '🎉 Skill selesai'), h('p', null, 'Semua misi lulus dengan skor akhir ' + r.cert.skor + '. Sertifikat "' + r.cert.judul_en + '" kini menunggu persetujuan dosen; Anda akan menerimanya setelah disetujui.'), h('a', { class: 'btn', href: '#/' }, 'Kembali ke Jalur Skill')));
+    if (r.cert && r.cert.status === 'valid') out.append(h('div', { class: 'card verified' }, h('h2', null, 'Selamat! Skill selesai'), h('p', null, 'Sertifikat "' + r.cert.judul_en + '" sudah disetujui dengan skor akhir ' + r.cert.skor + '.'), h('a', { class: 'btn primary', href: '#/sertifikat/' + r.cert.id }, 'Lihat & unduh sertifikat')));
+    else if (r.cert && r.cert.status === 'menunggu') out.append(h('div', { class: 'card verified' }, h('h2', null, 'Skill selesai'), h('p', null, 'Semua misi lulus dengan skor akhir ' + r.cert.skor + '. Sertifikat "' + r.cert.judul_en + '" kini menunggu persetujuan dosen; Anda akan menerimanya setelah disetujui.'), h('a', { class: 'btn', href: '#/' }, 'Kembali ke Jalur Skill')));
     else if (r.passed && nextM) out.append(h('a', { class: 'btn primary', href: '#/misi/' + s.id + '/' + nextM.id }, 'Lanjut ke misi berikutnya →'));
     body.append(out); out.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }

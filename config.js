@@ -5,7 +5,7 @@ window.VL_CONFIG = {
   institution: 'Azhar Virtual Marketing Lab',
   year: 2026,
   siteUrl: 'https://andiazhar.com',
-  version: '1.5.0',
+  version: '1.5.1',
   hkiNumber: '',                             // isi nomor pencatatan ciptaan DJKI setelah terbit
   // Alamat aplikasi di GitHub Pages (BUKAN halaman Blogger), dipakai pada QR sertifikat. Berakhiran /.
   // Contoh: 'https://wufeng102.github.io/virtual-lab/'. Dikosongkan = otomatis memakai alamat tempat aplikasi dibuka.

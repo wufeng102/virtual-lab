@@ -145,14 +145,14 @@
       box.innerHTML = '';
       if (!st.ok) { box.append(h('div', { class: 'card err' }, st.error)); return; }
       if (!st.certs.length) { box.append(h('div', { class: 'card' }, 'Belum ada sertifikat. Selesaikan semua misi pada satu skill; sertifikat terbit setelah disetujui dosen.', h('p', null, h('a', { class: 'btn primary', href: '#/' }, 'Mulai Jalur Skill')))); return; }
-      st.certs.forEach(c => box.append(h('a', { class: 'card certrow', href: '#/sertifikat/' + c.id }, h('b', null, '🎓 ' + c.judul_en), h('div', { class: 'muted small' }, c.id + ' · skor ' + c.skor + ' · ' + new Date(c.tanggal).toLocaleDateString('id-ID')), c.status !== 'valid' ? h('span', { class: 'pill st-' + (c.status === 'menunggu' ? 'pending' : 'blocked') }, { menunggu: 'menunggu persetujuan dosen', ditolak: 'belum disetujui', dicabut: 'dicabut' }[c.status] || c.status) : null)));
+      st.certs.forEach(c => box.append(h('a', { class: 'card certrow', href: '#/sertifikat/' + c.id }, h('b', null, '' + c.judul_en), h('div', { class: 'muted small' }, c.id + ' · skor ' + c.skor + ' · ' + new Date(c.tanggal).toLocaleDateString('id-ID')), c.status !== 'valid' ? h('span', { class: 'pill st-' + (c.status === 'menunggu' ? 'pending' : 'blocked') }, { menunggu: 'menunggu persetujuan dosen', ditolak: 'belum disetujui', dicabut: 'dicabut' }[c.status] || c.status) : null)));
       return;
     }
     view.append(h('p', null, h('a', { href: '#/sertifikat' }, '← Semua sertifikat')));
     const st = await VL.api.call('skills_state');
     const cert = st.ok && st.certs.find(c => c.id === id);
     if (!cert) { view.append(h('div', { class: 'card err' }, 'Sertifikat tidak ditemukan.')); return; }
-    if (cert.status === 'menunggu') { view.append(h('div', { class: 'card note' }, h('h3', null, '⏳ Menunggu persetujuan dosen'), h('p', null, 'Sertifikat "' + cert.judul_en + '" (skor ' + cert.skor + ') sedang diperiksa dosen. Anda akan menerima email begitu disetujui, dan sertifikat dapat diunduh di halaman ini.'))); return; }
+    if (cert.status === 'menunggu') { view.append(h('div', { class: 'card note' }, h('h3', null, 'Menunggu persetujuan dosen'), h('p', null, 'Sertifikat "' + cert.judul_en + '" (skor ' + cert.skor + ') sedang diperiksa dosen. Anda akan menerima email begitu disetujui, dan sertifikat dapat diunduh di halaman ini.'))); return; }
     if (cert.status === 'ditolak') { view.append(h('div', { class: 'card err' }, h('h3', null, 'Belum disetujui'), h('p', null, cert.catatan || 'Hubungi dosen untuk keterangan lebih lanjut.'))); return; }
     if (cert.status !== 'valid') view.append(h('div', { class: 'card err' }, 'Sertifikat ini telah dicabut oleh penerbit.'));
     const holder = h('div', { class: 'certbox' }, h('div', { class: 'muted' }, 'Menyiapkan sertifikat…')); view.append(holder);
@@ -165,9 +165,9 @@
       const r = await VL.api.call('email_cert', { id: cert.id, pdf: b64(pdf()) });
       emailBtn.disabled = false;
       if (r.ok) { msg.textContent = '✓ Terkirim ke ' + r.to + '. Periksa juga folder spam.'; msg.className = 'small ok'; } else { msg.textContent = '✗ ' + r.error; msg.className = 'small bad'; }
-    } }, '✉️ Kirim ke email saya');
+    } }, 'Kirim ke email saya');
     view.append(h('div', { class: 'row' },
-      h('button', { class: 'btn primary', onclick: () => saveBlob('Certificate-' + cert.id + '.pdf', pdf(), 'application/pdf') }, '⬇️ Unduh PDF'),
+      h('button', { class: 'btn primary', onclick: () => saveBlob('Certificate-' + cert.id + '.pdf', pdf(), 'application/pdf') }, 'Unduh PDF'),
       h('button', { class: 'btn', onclick: () => cv.toBlob(b => { const a = h('a', { href: URL.createObjectURL(b), download: 'Certificate-' + cert.id + '.png' }); document.body.append(a); a.click(); setTimeout(() => a.remove(), 500); }, 'image/png') }, 'Unduh gambar'),
       emailBtn,
       h('button', { class: 'btn', onclick: async () => { const url = verifyUrl(cert.id); try { if (navigator.share) await navigator.share({ title: cert.judul_en, text: 'Sertifikat ' + cert.id, url }); else { await navigator.clipboard.writeText(url); VL.toast('Tautan verifikasi disalin'); } } catch (e) { /* dibatalkan */ } } }, 'Bagikan tautan verifikasi')), msg);

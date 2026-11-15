@@ -43,7 +43,7 @@
       VL.modules.filter(m => !filter || m.mk.includes(filter)).forEach(m => {
         const c = runs.filter(r => r.module === m.id).length;
         grid.append(h('a', { class: 'mod', href: '#/m/' + m.id },
-          h('span', { class: 'ic' }, m.icon), h('h3', null, m.title), h('span', { class: 'muted small' }, m.desc),
+          h('h3', null, m.title), h('span', { class: 'muted small' }, m.desc),
           h('div', { class: 'tags' }, m.mk.map(x => h('span', { class: 'tag' }, x)), c ? h('span', { class: 'tag' }, c + ' catatan') : null)));
       });
     }
@@ -56,7 +56,7 @@
     const m = VL.modules.find(x => x.id === id);
     if (!m) { view.append(h('div', { class: 'card err' }, 'Modul tidak ditemukan.')); return; }
     view.append(h('p', null, h('a', { href: '#/' }, '← Beranda')),
-      h('h1', null, m.icon + ' ' + m.title),
+      h('h1', null, m.title),
       h('p', { class: 'muted' }, m.desc));
     const body = h('div'); view.append(body);
     m.render(body);
@@ -159,7 +159,7 @@
   function route() {
     const parts = location.hash.replace(/^#\/?/, '').split('/');
     const a = parts[0], b = parts[1];
-    view.innerHTML = ''; window.scrollTo(0, 0);
+    view.innerHTML = ''; window.scrollTo(0, 0); document.body.classList.remove('gated');
     const finish = () => { setNav(a || ''); document.title = (a === 'm' ? modName(b) + ' · ' : '') + 'Virtual Lab Marketing'; };
     const done = p => { finish(); if (p && p.catch) p.catch(e => { view.append(h('div', { class: 'card err' }, 'Terjadi kesalahan: ' + e.message)); console.error(e); }); };
     try {
@@ -190,7 +190,7 @@
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
   function installBar() {
     if (standalone || embed || VL.store.getG('installDismissed', false) || document.getElementById('installbar')) return;
-    const bar = h('div', { class: 'installbar', id: 'installbar' }, h('span', null, isIOS ? 'Pasang di iPhone: ketuk ikon Bagikan, lalu "Tambah ke Layar Utama".' : '📲 Pasang aplikasi ini di HP Anda agar terbuka seperti aplikasi biasa.'),
+    const bar = h('div', { class: 'installbar', id: 'installbar' }, h('span', null, isIOS ? 'Pasang di iPhone: ketuk ikon Bagikan, lalu "Tambah ke Layar Utama".' : 'Pasang aplikasi ini di HP Anda agar terbuka seperti aplikasi biasa.'),
       deferred ? h('button', { class: 'btn small', onclick: async () => { deferred.prompt(); await deferred.userChoice; deferred = null; bar.remove(); } }, 'Pasang') : null,
       h('button', { class: 'x', 'aria-label': 'Tutup', onclick: () => { VL.store.setG('installDismissed', true); bar.remove(); } }, '×'));
     document.body.insertBefore(bar, document.querySelector('.topbar'));
@@ -214,7 +214,7 @@
     if (!VL.api.enabled()) { route(); return; }
     if (isVerify()) { route(); return; }
     if (VL.api.loggedIn()) {
-      view.innerHTML = ''; view.append(h('div', { class: 'card' }, 'Memeriksa akun…'));
+      document.body.classList.remove('gated'); view.innerHTML = ''; view.append(h('div', { class: 'card' }, 'Memeriksa akun…'));
       const r = await VL.api.restore();
       if (r.ok) { route(); VL.api.sync(); if (r.offline) VL.toast('Mode offline'); return; }
       msg = msg || r.error;
