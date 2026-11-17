@@ -49,7 +49,7 @@
 
   /* ---------- Muat & tampilkan ---------- */
   async function start() {
-    document.body.classList.remove('gated'); view.innerHTML = ''; view.append(h('div', { class: 'card' }, 'Memuat data…'));
+    document.body.classList.remove('gated'); if (window.__instBar) setTimeout(window.__instBar, 800); view.innerHTML = ''; view.append(h('div', { class: 'card' }, 'Memuat data…'));
     const r = await call('admin_overview');
     if (!r.ok) { if (r.code === 'auth') return; view.innerHTML = ''; view.append(h('div', { class: 'card err' }, r.error || 'Gagal memuat.'), h('button', { class: 'btn', onclick: () => logout(false) }, 'Keluar')); return; }
     D = r;
@@ -248,6 +248,24 @@
       h('p', { class: 'muted small' }, 'Catatan: isi jurnal dikirim dari perangkat mahasiswa dan dapat diubah oleh mereka. Perlakukan sebagai bukti proses belajar, bukan catatan yang tak bisa dipalsukan.')), out);
     go();
   }
+
+  /* Pemasangan sebagai aplikasi di HP */
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+  (function () {
+    const standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone;
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent); let deferred = null;
+    function bar() {
+      if (standalone || document.body.classList.contains('gated') || document.getElementById('installbar') || ls.get('instDismissed')) return;
+      const b = h('div', { class: 'installbar', id: 'installbar' }, h('span', null, ios ? 'Pasang di iPhone: ketuk ikon Bagikan, lalu "Tambah ke Layar Utama".' : 'Pasang Ruang Komando di HP Anda agar terbuka seperti aplikasi.'),
+        deferred ? h('button', { class: 'btn small', onclick: async () => { deferred.prompt(); await deferred.userChoice; deferred = null; b.remove(); } }, 'Pasang') : null,
+        h('button', { class: 'x', 'aria-label': 'Tutup', onclick: () => { ls.set('instDismissed', '1'); b.remove(); } }, '\u00d7'));
+      document.body.insertBefore(b, document.querySelector('.topbar'));
+    }
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; setTimeout(bar, 600); });
+    window.addEventListener('appinstalled', () => { const b = document.getElementById('installbar'); if (b) b.remove(); });
+    if (ios) setTimeout(bar, 2500);
+    window.__instBar = () => { if (deferred || ios) bar(); };
+  })();
 
   if (!cfg.apiUrl) showLogin();
   else if (token && user) start(); else showLogin();

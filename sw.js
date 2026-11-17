@@ -1,7 +1,7 @@
 // Service worker: aplikasi tetap bisa dibuka tanpa internet setelah kunjungan pertama.
-const CACHE = 'vlmkt-v1.5.1';
+const CACHE = 'vlmkt-v1.5.4';
 const ASSETS = [
-  './', './index.html', './config.js', './manifest.webmanifest',
+  './', './index.html', './dosen.html', './config.js', './manifest.webmanifest', './manifest-dosen.webmanifest', './js/dosen.js',
   './css/style.css',
   './js/core.js', './js/ui.js', './js/mod-ads.js', './js/mod-market.js', './js/mod-analytics.js',
   './js/mod-research.js', './js/mod-strategy.js', './js/mod-funnel.js', './js/skills-data.js', './js/vendor/qrcode.js', './js/skills.js', './js/cert.js', './assets/logo.png', './assets/signature.png', './icons/apple-touch-icon.png', './js/mod-ai.js', './js/api.js', './js/auth.js', './js/app.js',
@@ -27,7 +27,7 @@ self.addEventListener('fetch', e => {
   // Halaman: jaringan dulu, cadangan dari cache. Aset: cache dulu, perbarui di latar belakang.
   if (req.mode === 'navigate') {
     e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); return r; })
-      .catch(() => caches.match(req).then(r => r || caches.match('./index.html'))));
+      .catch(() => caches.match(req).then(r => r || caches.match(url.pathname.endsWith('dosen.html') ? './dosen.html' : './index.html'))));
     return;
   }
   e.respondWith(

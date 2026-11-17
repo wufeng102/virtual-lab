@@ -5,11 +5,11 @@ window.VL_CONFIG = {
   institution: 'Azhar Virtual Marketing Lab',
   year: 2026,
   siteUrl: 'https://andiazhar.com',
-  version: '1.5.1',
+  version: '1.5.4',
   hkiNumber: '',                             // isi nomor pencatatan ciptaan DJKI setelah terbit
   // Alamat aplikasi di GitHub Pages (BUKAN halaman Blogger), dipakai pada QR sertifikat. Berakhiran /.
-  // Contoh: 'https://wufeng102.github.io/virtual-lab/'. Dikosongkan = otomatis memakai alamat tempat aplikasi dibuka.
-  appUrl: 'https://wufeng102.github.io/virtual-lab/',
+  // Contoh: 'https://virtuallab.andiazhar.com/'. Dikosongkan = otomatis memakai alamat tempat aplikasi dibuka.
+  appUrl: 'https://virtuallab.andiazhar.com/',
   // URL Web App Google Apps Script berakhiran /exec (lihat PANDUAN-PEMASANGAN.md). Kosong = mode uji lokal tanpa login.
   apiUrl: 'https://script.google.com/macros/s/AKfycbw4N-3kUO2HZWYOKXUclijjjKPexZ0Rw0_RsXiQ2o1WxDGNKegQhX_165rBEOGnXOfbFA/exec'
 };

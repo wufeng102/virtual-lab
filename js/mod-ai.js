@@ -107,6 +107,41 @@
     });
   };
 
+
+  /* Kartu kunci yang mencolok: dipakai di beranda dan di sebelum sesi. onchange dipanggil saat status kunci berubah. */
+  G.keyCard = function (onchange) {
+    const box = h('section', { class: 'keycard' });
+    function draw() {
+      box.innerHTML = ''; const ok = G.hasKey();
+      box.className = 'keycard ' + (ok ? 'ok' : 'need');
+      if (ok) {
+        box.append(h('div', { class: 'kc-head' }, h('span', { class: 'kc-badge' }, 'Siap'), h('h3', null, 'Kunci Gemini sudah terpasang')),
+          h('p', { class: 'small' }, 'Latihan yang dinilai AI sudah bisa dimulai. Kunci hanya ada di perangkat ini.'),
+          h('div', { class: 'row' }, h('button', { class: 'btn small', onclick: () => { G.setKey(''); draw(); onchange && onchange(); } }, 'Hapus kunci'), h('button', { class: 'btn small', onclick: async () => { await G.ensureKey(true, 'Masukkan kunci baru untuk mengganti kunci yang ada.'); draw(); onchange && onchange(); } }, 'Ganti kunci')));
+        return;
+      }
+      const inp = h('input', { type: 'password', autocomplete: 'off', placeholder: 'Tempel kunci API Gemini (diawali AIza)' });
+      const rem = h('input', { type: 'checkbox' }); const msg = h('div', { class: 'small bad' });
+      const btn = h('button', { class: 'btn primary' }, 'Simpan dan uji kunci');
+      async function save() {
+        const k = inp.value.trim(); msg.textContent = '';
+        if (!looksLikeKey(k)) { msg.textContent = 'Format kunci tidak sesuai. Salin utuh dari Google AI Studio, tanpa spasi.'; return; }
+        btn.disabled = true; btn.textContent = 'Menguji kunci…'; G.setKey(k, rem.checked); G.setModel('');
+        try { await G.pickModel(); } catch (e) { G.setKey(''); btn.disabled = false; btn.textContent = 'Simpan dan uji kunci'; msg.textContent = e.message; return; }
+        VL.toast('Kunci berfungsi dan tersimpan'); draw(); onchange && onchange();
+      }
+      btn.addEventListener('click', save); inp.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+      box.append(h('div', { class: 'kc-head' }, h('span', { class: 'kc-badge' }, 'Wajib'), h('h3', null, 'Pasang kunci Gemini Anda dulu')),
+        h('p', null, 'Latihan studi kasus, praktik, role-play dan rapat dinilai AI memakai kunci Gemini milik Anda sendiri. Tanpa kunci, sesi tidak bisa dimulai.'),
+        h('ol', { class: 'small' }, h('li', null, 'Buka ', h('a', { href: 'https://aistudio.google.com/app/apikey', target: '_blank', rel: 'noopener' }, 'aistudio.google.com/app/apikey'), ', masuk dengan akun Google, lalu buat kunci (gratis).'), h('li', null, 'Salin kunci, tempel di bawah, tekan simpan.')),
+        VL.field('Kunci API Gemini', inp),
+        h('label', { class: 'chk small' }, rem, h('span', null, 'Ingat di perangkat ini (jangan centang di perangkat bersama). Tanpa centang, kunci hilang saat tab ditutup.')),
+        msg, btn,
+        h('p', { class: 'muted small' }, 'Kunci dikirim lewat server dosen ke Google untuk satu panggilan penilaian lalu dibuang; tidak disimpan dan tidak dicatat. Pakai kunci khusus pelatihan ini dan hapus setelah kuliah selesai.'));
+    }
+    draw(); return box;
+  };
+
   /* ---------- UI pengaturan ---------- */
   G.settingsUI = function (host) {
     host.innerHTML = '';

@@ -36,6 +36,7 @@
   S.home = async function (view) {
     const u = VL.api.user();
     view.append(VL.band('Jalur Skill Pemasaran', (u && u.nama ? 'Halo, ' + u.nama.split(' ')[0] + '. ' : '') + 'Tiga belas skill yang dicari di dunia kerja, dari pemasaran konvensional sampai digital. Selesaikan satu skill untuk membuka berikutnya; sertifikat terbit setelah disetujui dosen.'));
+    if (VL.gemini) view.append(VL.gemini.keyCard(() => { /* status kunci berubah */ }));
     const box = h('div', null, h('div', { class: 'card' }, 'Memuat jalur skill…')); view.append(box);
     const st = await S.load(true);
     box.innerHTML = '';
@@ -157,7 +158,7 @@
     function pre(msg) {
       body.innerHTML = '';
       if (msg) body.append(h('div', { class: 'card err' }, msg));
-      const go = h('button', { class: 'btn primary' }, '▶ Mulai sesi');
+      const go = h('button', { class: 'btn primary' }, 'Mulai sesi');
       body.append(h('div', { class: 'card' }, h('h3', null, 'Sesi terjaga'),
         h('ul', { class: 'small' },
           h('li', null, 'Kasus/soal baru ditampilkan hanya setelah Anda menekan tombol mulai' + (m.gen ? '; data kasus dibuat baru setiap sesi.' : '.')),
@@ -165,13 +166,15 @@
           h('li', null, 'Fitur tempel dan salin dinonaktifkan. Ketik jawaban Anda sendiri.'),
           h('li', null, 'Maksimal 90 menit per sesi. Batal 3 kali: tunggu sekitar 6 jam.'),
           h('li', null, 'Percobaan hari ini: ' + tm.tries_today + '/' + lim + '.')),
-        m.kind !== 'quiz' ? keyNotice() : null, h('div', { class: 'row' }, go)));
+        m.kind !== 'quiz' && VL.gemini ? VL.gemini.keyCard(sync) : null, h('div', { class: 'row' }, go)));
+      function sync() { go.disabled = m.kind !== 'quiz' && VL.gemini && !VL.gemini.hasKey(); go.title = go.disabled ? 'Pasang kunci Gemini dulu' : ''; }
+      sync();
       go.addEventListener('click', async () => {
         go.disabled = true; go.textContent = m.gen ? 'AI menyiapkan kasus…' : 'Menyiapkan sesi…';
         let r;
         if (m.kind === 'quiz') r = await VL.api.call('sess_start', { skill: s.id, mission: m.id });
         else r = await aiCall('sess_start', { skill: s.id, mission: m.id });
-        if (!r.ok) { go.disabled = false; go.textContent = '▶ Mulai sesi'; VL.toast(r.error); if (r.code === 'limit') pre(r.error); return; }
+        if (!r.ok) { go.textContent = 'Mulai sesi'; sync(); VL.toast(r.error); if (r.code === 'limit') pre(r.error); return; }
         run(r);
       });
     }

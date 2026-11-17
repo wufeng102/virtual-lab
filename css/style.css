@@ -214,3 +214,15 @@ body.gated main{max-width:none;padding:0}
   .gate-form{padding:1.6rem 1.3rem 2.4rem;align-items:flex-start}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Kartu kunci Gemini */
+.keycard{background:var(--card,#fff);border:1px solid var(--line,#d9dcea);border-left:4px solid var(--gold,#A97F3F);padding:1.1rem 1.25rem;margin:0 0 1.25rem;border-radius:3px}
+.keycard.need{border-left-color:#B3402F;box-shadow:0 0 0 1px rgba(179,64,47,.25)}
+.keycard.ok{border-left-color:#1F7A4D}
+.keycard .kc-head{display:flex;align-items:center;gap:.7rem;margin-bottom:.4rem}
+.keycard h3{margin:0;font-family:'Bodoni Moda',Georgia,serif;font-weight:500;font-size:1.2rem}
+.keycard .kc-badge{font-size:.72rem;font-weight:700;letter-spacing:.04em;padding:.15rem .5rem;border-radius:2px;color:#fff;background:#B3402F}
+.keycard.ok .kc-badge{background:#1F7A4D}
+.keycard input[type=password]{width:100%}
+.keycard .chk{display:flex;gap:.5rem;align-items:flex-start;margin:.5rem 0}
+.keycard .btn{margin-top:.4rem}

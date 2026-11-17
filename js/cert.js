@@ -9,8 +9,10 @@
 
   const verifyUrl = id => (VL.cfg.appUrl || (location.origin + location.pathname)).replace(/#.*$/, '') + '#/verify/' + id;
   C.verifyUrl = verifyUrl;
-  const levelEn = s => s >= 85 ? 'with Distinction' : 'Competent';
+  const levelEn = s => s >= 85 ? 'Distinction' : 'Competent';
+  const levelId = s => s >= 85 ? 'Sangat Cakap' : 'Cakap';
   const fmtDate = iso => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+  const fmtDateId = iso => new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
 
   function loadImg(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Gagal memuat ' + src)); i.src = src; }); }
 
@@ -51,7 +53,7 @@
     ctx.restore();
   }
 
-  /* cert: {id, nama, judul_en, skor, tanggal, skkni:[{code,title}], bullets:[...]} */
+  /* cert: {id, nama, judul, judul_en, bulletsId, skor, tanggal, skkni:[{code,title}], bullets:[...]} */
   C.render = async function (cert) {
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
     const [logo, sig] = await Promise.all([loadImg('assets/logo.png'), loadImg('assets/signature.png')]);
@@ -65,45 +67,57 @@
     corner(ctx, 96, 96, 1, 1); corner(ctx, W - 96, 96, -1, 1); corner(ctx, 96, H - 96, 1, -1); corner(ctx, W - 96, H - 96, -1, -1);
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     // kepala
-    ctx.drawImage(logo, W / 2 - 85, 108, 170, 170);
-    ctx.fillStyle = NAVY; ctx.font = '700 34px ' + SANS; spaced(ctx, 'AZHAR VIRTUAL MARKETING LAB', W / 2, 322, 9);
-    ctx.fillStyle = MUTE; ctx.font = '400 26px ' + SANS; spaced(ctx, 'MARKETING SIMULATION & COMPETENCY LAB', W / 2, 360, 5);
-    // judul
-    ctx.fillStyle = NAVY; ctx.font = '400 108px ' + SERIF; spaced(ctx, 'CERTIFICATE', W / 2, 474, 18);
-    ctx.fillStyle = GOLD; ctx.font = '600 34px ' + SANS; spaced(ctx, 'OF COMPLETION' + (cert.skor >= 85 ? '  ·  WITH DISTINCTION' : ''), W / 2, 530, 12);
-    ctx.strokeStyle = GOLD; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - 340, 566); ctx.lineTo(W / 2 - 24, 566); ctx.moveTo(W / 2 + 24, 566); ctx.lineTo(W / 2 + 340, 566); ctx.stroke();
-    ctx.fillStyle = TEAL; ctx.save(); ctx.translate(W / 2, 566); ctx.rotate(Math.PI / 4); ctx.fillRect(-9, -9, 18, 18); ctx.restore();
-    // isi
-    ctx.fillStyle = MUTE; ctx.font = 'italic 400 34px ' + SERIF; ctx.fillText('This is to certify that', W / 2, 624);
-    const nm = String(cert.nama || '').trim(); fit(ctx, nm, 1500, 104, SERIF, '400');
-    ctx.fillStyle = NAVY; ctx.fillText(nm, W / 2, 728);
-    const nw = Math.min(1500, ctx.measureText(nm).width) + 120; ctx.strokeStyle = GOLD; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - nw / 2, 752); ctx.lineTo(W / 2 + nw / 2, 752); ctx.stroke();
-    ctx.fillStyle = MUTE; ctx.font = 'italic 400 34px ' + SERIF; ctx.fillText('has successfully completed the practical skill programme', W / 2, 808);
-    const T = cert.judul_en.toUpperCase(); fit(ctx, T, 1700, 64, SANS, '700'); ctx.fillStyle = NAVY; ctx.fillText(T, W / 2, 888);
-    // kompetensi
-    ctx.fillStyle = INK; ctx.font = '400 27px ' + SANS; let y = 946;
-    const bl = []; (cert.bullets || []).slice(0, 3).forEach(b => wrap(ctx, b, 1500).forEach((l, i) => bl.push((i === 0 ? '•  ' : '    ') + l)));
-    const bw = Math.max.apply(null, bl.map(l => ctx.measureText(l).width).concat([0])); ctx.textAlign = 'left';
-    bl.forEach(l => { ctx.fillText(l, W / 2 - bw / 2, y); y += 36; }); ctx.textAlign = 'center';
-    y += 14; ctx.fillStyle = NAVY; ctx.font = '700 30px ' + SANS; ctx.fillText('Overall result: ' + cert.skor + ' / 100  ·  ' + levelEn(cert.skor), W / 2, y);
-    y += 40; ctx.fillStyle = MUTE; ctx.font = '400 23px ' + SANS;
+    ctx.drawImage(logo, W / 2 - 54, 98, 108, 108);
+    ctx.fillStyle = NAVY; ctx.font = '700 32px ' + SANS; spaced(ctx, 'AZHAR VIRTUAL MARKETING LAB', W / 2, 248, 9);
+    ctx.fillStyle = MUTE; ctx.font = '400 22px ' + SANS; spaced(ctx, 'LABORATORIUM SIMULASI & KOMPETENSI PEMASARAN', W / 2, 280, 4);
+    // judul dua bahasa
+    ctx.fillStyle = NAVY; ctx.font = '400 84px ' + SERIF; spaced(ctx, 'SERTIFIKAT', W / 2, 368, 16);
+    ctx.fillStyle = GOLD; ctx.font = '600 34px ' + SANS; spaced(ctx, 'CERTIFICATE OF COMPLETION', W / 2, 414, 12);
+    ctx.strokeStyle = GOLD; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - 340, 444); ctx.lineTo(W / 2 - 24, 444); ctx.moveTo(W / 2 + 24, 444); ctx.lineTo(W / 2 + 340, 444); ctx.stroke();
+    ctx.fillStyle = TEAL; ctx.save(); ctx.translate(W / 2, 444); ctx.rotate(Math.PI / 4); ctx.fillRect(-9, -9, 18, 18); ctx.restore();
+    // penerima
+    ctx.fillStyle = INK; ctx.font = 'italic 400 32px ' + SERIF; ctx.fillText('Diberikan kepada', W / 2, 494);
+    ctx.fillStyle = MUTE; ctx.font = 'italic 400 25px ' + SERIF; ctx.fillText('This is to certify that', W / 2, 524);
+    const nm = String(cert.nama || '').trim(); fit(ctx, nm, 1500, 88, SERIF, '400');
+    ctx.fillStyle = NAVY; ctx.fillText(nm, W / 2, 606);
+    const nw = Math.min(1500, ctx.measureText(nm).width) + 120; ctx.strokeStyle = GOLD; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - nw / 2, 630); ctx.lineTo(W / 2 + nw / 2, 630); ctx.stroke();
+    ctx.fillStyle = INK; ctx.font = 'italic 400 30px ' + SERIF; ctx.fillText('telah berhasil menyelesaikan program keterampilan praktik', W / 2, 676);
+    ctx.fillStyle = MUTE; ctx.font = 'italic 400 24px ' + SERIF; ctx.fillText('has successfully completed the practical skill programme', W / 2, 706);
+    // nama skill dua bahasa
+    const tid = String(cert.judul || cert.judul_en).replace(/\s*\(.*\)\s*$/, ''); const same = tid.toLowerCase() === String(cert.judul_en || '').toLowerCase(); const TI = tid.toUpperCase(); fit(ctx, TI, 1750, 50, SANS, '700'); ctx.fillStyle = NAVY; ctx.fillText(TI, W / 2, 770);
+    if (!same) { const TE = String(cert.judul_en || cert.judul); fit(ctx, TE, 1650, 36, SERIF, 'italic 400'); ctx.fillStyle = GOLD; ctx.fillText(TE, W / 2, 812); }
+    // kompetensi: tiap butir Indonesia lalu Inggris
+    let y = 866; const idb = (cert.bulletsId || []).slice(0, 3), enb = (cert.bullets || []).slice(0, 3), n = Math.max(idb.length, enb.length);
+    const rows = []; for (let i = 0; i < n; i++) { rows.push({ t: idb[i] || enb[i], en: false }); if (idb[i] && enb[i]) rows.push({ t: enb[i], en: true }); }
+    ctx.font = '400 24px ' + SANS; const wI = Math.max.apply(null, rows.filter(r => !r.en).map(r => ctx.measureText('•  ' + r.t).width).concat([0]));
+    ctx.font = 'italic 400 20px ' + SANS; const wE = Math.max.apply(null, rows.filter(r => r.en).map(r => ctx.measureText('    ' + r.t).width).concat([0]));
+    const bx = W / 2 - Math.min(1750, Math.max(wI, wE)) / 2; ctx.textAlign = 'left';
+    rows.forEach(r => { if (r.en) { ctx.fillStyle = MUTE; ctx.font = 'italic 400 20px ' + SANS; ctx.fillText('    ' + r.t, bx, y); y += 32; } else { ctx.fillStyle = INK; ctx.font = '400 24px ' + SANS; ctx.fillText('•  ' + r.t, bx, y); y += 28; } });
+    ctx.textAlign = 'center';
+    y += 14; ctx.fillStyle = NAVY; ctx.font = '700 28px ' + SANS; ctx.fillText('Hasil akhir / Overall result: ' + cert.skor + ' / 100  ·  ' + levelId(cert.skor) + ' (' + levelEn(cert.skor) + ')', W / 2, y);
+    y += 34; ctx.fillStyle = MUTE; ctx.font = '400 20px ' + SANS;
     const codes = (cert.skkni || []).map(u => u.code).join(' · ');
-    if (codes) wrap(ctx, 'Aligned with SKKNI Marketing (Kepmenakertrans No. 389/2013): ' + codes, 1700).forEach(l => { ctx.fillText(l, W / 2, y); y += 31; });
+    if (codes) { ctx.fillText('Selaras dengan SKKNI Pemasaran (Kepmenakertrans No. 389/2013) / Aligned with the Indonesian National Work Competency Standard for Marketing', W / 2, y); y += 28; wrap(ctx, codes, 1700).forEach(l => { ctx.fillText(l, W / 2, y); y += 28; }); }
     // bawah: QR | segel + tanggal | tanda tangan
-    const by = 1160, qs = 190, qx = 280;
+    const by = Math.max(y + 8, 1200), qs = 150, qx = 290;
     qrDraw(ctx, verifyUrl(cert.id), qx, by, qs);
-    ctx.fillStyle = MUTE; ctx.font = '400 21px ' + SANS; ctx.fillText('Scan to verify authenticity', qx + qs / 2, by + qs + 30);
-    ctx.fillStyle = NAVY; ctx.font = '700 23px ' + SANS; ctx.fillText(cert.id, qx + qs / 2, by + qs + 58);
-    seal(ctx, W / 2, by + 86, 90);
-    ctx.fillStyle = INK; ctx.font = '400 26px ' + SANS; ctx.fillText('Issued on ' + fmtDate(cert.tanggal), W / 2, by + 214);
-    const sx = W - 700, sW = 450, sH = Math.min(150, sW * sig.height / sig.width), sWd = sH * sig.width / sig.height;
-    ctx.drawImage(sig, sx + (sW - sWd) / 2, by + 196 - sH - 8, sWd, sH);
-    ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, by + 196); ctx.lineTo(sx + sW, by + 196); ctx.stroke();
-    ctx.fillStyle = NAVY; ctx.font = '700 32px ' + SERIF; ctx.fillText('Andi Azhar, Ph.D', sx + sW / 2, by + 234);
-    ctx.fillStyle = MUTE; ctx.font = '400 21px ' + SANS; ctx.fillText('Founder & Lecturer, Azhar Virtual Marketing Lab', sx + sW / 2, by + 262);
-    // catatan kaki
-    ctx.fillStyle = MUTE; ctx.font = '400 17px ' + SANS;
-    wrap(ctx, 'This certificate confirms completion of simulated practice tasks and AI-assisted assessment in the Azhar Virtual Marketing Lab. It is not a BNSP professional competency certificate. Verify at ' + verifyUrl(cert.id), 1640).forEach((l, i) => ctx.fillText(l, W / 2, 1446 + i * 22));
+    ctx.fillStyle = MUTE; ctx.font = '400 18px ' + SANS; ctx.fillText('Pindai untuk memverifikasi / Scan to verify', qx + qs / 2, by + qs + 24);
+    ctx.fillStyle = NAVY; ctx.font = '700 21px ' + SANS; ctx.fillText(cert.id, qx + qs / 2, by + qs + 48);
+    seal(ctx, W / 2, by + 62, 66);
+    ctx.fillStyle = INK; ctx.font = '400 22px ' + SANS; ctx.fillText('Diterbitkan pada ' + fmtDateId(cert.tanggal), W / 2, by + 152);
+    ctx.fillStyle = MUTE; ctx.font = 'italic 400 20px ' + SANS; ctx.fillText('Issued on ' + fmtDate(cert.tanggal), W / 2, by + 178);
+    const sx = W - 730, sW = 480, sH = Math.min(105, sW * sig.height / sig.width), sWd = sH * sig.width / sig.height;
+    ctx.drawImage(sig, sx + (sW - sWd) / 2, by + 106 - sH - 6, sWd, sH);
+    ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, by + 106); ctx.lineTo(sx + sW, by + 106); ctx.stroke();
+    ctx.fillStyle = NAVY; ctx.font = '700 30px ' + SERIF; ctx.fillText('Andi Azhar, Ph.D', sx + sW / 2, by + 140);
+    ctx.fillStyle = INK; ctx.font = '400 19px ' + SANS; ctx.fillText('Pendiri & Dosen Pengampu, Azhar Virtual Marketing Lab', sx + sW / 2, by + 164);
+    ctx.fillStyle = MUTE; ctx.font = 'italic 400 18px ' + SANS; ctx.fillText('Founder & Lecturer', sx + sW / 2, by + 186);
+    // catatan kaki dua bahasa
+    ctx.fillStyle = MUTE; ctx.font = '400 16px ' + SANS;
+    ctx.fillText('Sertifikat ini menyatakan penyelesaian tugas praktik simulasi dan penilaian berbantuan AI di Azhar Virtual Marketing Lab.', W / 2, H - 130);
+    ctx.font = 'italic 400 16px ' + SANS;
+    ctx.fillText('This certificate confirms completion of simulated practice tasks and AI-assisted assessment at Azhar Virtual Marketing Lab.', W / 2, H - 108);
+    ctx.font = '400 15px ' + SANS; ctx.fillText('Verifikasi / Verify: ' + verifyUrl(cert.id), W / 2, H - 86);
     return cv;
   };
 
@@ -132,7 +146,7 @@
   /* Data lengkap untuk satu sertifikat (gabung server + definisi skill publik) */
   C.dataFor = function (c, user) {
     const sk = (window.VL_SKILLS || []).find(s => s.id === c.skill) || {};
-    return { id: c.id, nama: (user && user.nama) || c.nama, judul_en: c.judul_en, skor: c.skor, tanggal: c.tanggal, skkni: sk.skkni || [], bullets: sk.certBullets || [] };
+    return { id: c.id, nama: (user && user.nama) || c.nama, judul: c.judul || sk.title, judul_en: c.judul_en || sk.titleEn, skor: c.skor, tanggal: c.tanggal, skkni: sk.skkni || [], bullets: sk.certBullets || [], bulletsId: sk.certBulletsId || [] };
   };
 
   /* ---------- Halaman daftar & detail sertifikat ---------- */
